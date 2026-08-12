@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
@@ -128,32 +129,32 @@ class _HomeContent extends StatelessWidget {
                       _CategoryCard(
                         icon: Icons.favorite,
                         label: 'Boda',
-                        onTap: () => context.go(AppRoutes.wedding),
+                        onTap: () => GoRouter.of(context).go(AppRoutes.wedding),
                       ),
                       _CategoryCard(
                         icon: Icons.cake,
                         label: 'Cumpleaños',
-                        onTap: () => context.go(AppRoutes.birthday),
+                        onTap: () => GoRouter.of(context).go(AppRoutes.birthday),
                       ),
                       _CategoryCard(
                         icon: Icons.child_care,
                         label: 'Baby Shower',
-                        onTap: () => context.go(AppRoutes.babyshower),
+                        onTap: () => GoRouter.of(context).go(AppRoutes.babyshower),
                       ),
                       _CategoryCard(
                         icon: Icons.business,
                         label: 'Corporativo',
-                        onTap: () => context.go(AppRoutes.corporate),
+                        onTap: () => GoRouter.of(context).go(AppRoutes.corporate),
                       ),
                       _CategoryCard(
                         icon: Icons.school,
                         label: 'Graduación',
-                        onTap: () => context.go(AppRoutes.graduation),
+                        onTap: () => GoRouter.of(context).go(AppRoutes.graduation),
                       ),
                       _CategoryCard(
                         icon: Icons.celebration,
                         label: 'XV Años',
-                        onTap: () => context.go(AppRoutes.xv),
+                        onTap: () => GoRouter.of(context).go(AppRoutes.xv),
                       ),
                     ],
                   ),
@@ -252,7 +253,7 @@ class _FeaturedCakesList extends StatelessWidget {
       children: featuredCakes.map((cake) {
         return CakeCard(
           cake: cake,
-          onTap: () => context.go('${AppRoutes.cakeDetail}/${cake.id}'),
+          onTap: () => GoRouter.of(context).go('${AppRoutes.cakeDetail}/${cake.id}'),
         );
       }).toList(),
     );
@@ -331,13 +332,13 @@ class _ProfileContent extends StatelessWidget {
               _MenuOption(
                 icon: Icons.shopping_bag,
                 title: 'Mis Pedidos',
-                onTap: () => context.go(AppRoutes.myAppointments),
+                onTap: () => GoRouter.of(context).go(AppRoutes.myAppointments),
               ),
               if (authProvider.isBaker)
                 _MenuOption(
                   icon: Icons.dashboard,
                   title: 'Dashboard de Repostero',
-                  onTap: () => context.go(AppRoutes.bakerDashboard),
+                  onTap: () => GoRouter.of(context).go(AppRoutes.bakerDashboard),
                 ),
               _MenuOption(
                 icon: Icons.settings,
@@ -350,7 +351,7 @@ class _ProfileContent extends StatelessWidget {
                 onTap: () async {
                   await authProvider.logout();
                   if (context.mounted) {
-                    context.go(AppRoutes.login);
+                    GoRouter.of(context).go(AppRoutes.login);
                   }
                 },
               ),

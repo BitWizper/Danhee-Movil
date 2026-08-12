@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
@@ -36,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       
       if (success && mounted) {
-        context.go(AppRoutes.home);
+        GoRouter.of(context).go(AppRoutes.home);
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -162,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     
                     // Register Link
                     TextButton(
-                      onPressed: () => context.go(AppRoutes.register),
+                      onPressed: () => GoRouter.of(context).go(AppRoutes.register),
                       child: const Text('¿No tienes cuenta? Regístrate'),
                     ),
                     

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
@@ -59,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       );
       
       if (success && mounted) {
-        context.go(AppRoutes.home);
+        GoRouter.of(context).go(AppRoutes.home);
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -86,7 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       );
       
       if (success && mounted) {
-        context.go(AppRoutes.home);
+        GoRouter.of(context).go(AppRoutes.home);
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -250,7 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             const SizedBox(height: 16),
             
             TextButton(
-              onPressed: () => context.go(AppRoutes.login),
+              onPressed: () => GoRouter.of(context).go(AppRoutes.login),
               child: const Text('¿Ya tienes cuenta? Inicia sesión'),
             ),
           ],
@@ -411,7 +412,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             const SizedBox(height: 16),
             
             TextButton(
-              onPressed: () => context.go(AppRoutes.login),
+              onPressed: () => GoRouter.of(context).go(AppRoutes.login),
               child: const Text('¿Ya tienes cuenta? Inicia sesión'),
             ),
           ],
