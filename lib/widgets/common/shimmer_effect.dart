@@ -55,29 +55,15 @@ class _ShimmerEffectState extends State<ShimmerEffect>
                 AppColors.gold.withOpacity(0.0),
               ],
               stops: [
-                _animation.value - 0.3,
-                _animation.value,
-                _animation.value + 0.3,
+                _animation.value.clamp(0.0, 1.0) - 0.3,
+                _animation.value.clamp(0.0, 1.0),
+                _animation.value.clamp(0.0, 1.0) + 0.3,
               ],
-              transform: _SlidingGradientTransform(
-                slidePercent: _animation.value,
-              ),
             ).createShader(bounds);
           },
           child: widget.child,
         );
       },
     );
-  }
-}
-
-class _SlidingGradientTransform extends GradientTransform {
-  final double slidePercent;
-  
-  _SlidingGradientTransform({required this.slidePercent});
-  
-  @override
-  Gradient? transform(Gradient gradient, Rect? bounds) {
-    return gradient;
   }
 }
