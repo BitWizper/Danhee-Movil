@@ -43,7 +43,6 @@ class AppRoutes {
 final goRouter = GoRouter(
   initialLocation: AppRoutes.home,
   debugLogDiagnostics: true,
-  theme: AppTheme.lightTheme,
   routes: [
     // Rutas públicas
     GoRoute(
