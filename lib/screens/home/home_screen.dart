@@ -5,6 +5,7 @@ import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/cards/cake_card.dart';
+import '../../widgets/common/animated_background.dart';
 import '../../models/cake.dart';
 
 /// Pantalla principal (Home)
@@ -22,14 +23,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          _HomeContent(),
-          _ExploreContent(),
-          _CartContent(),
-          _ProfileContent(),
-        ],
+      body: AnimatedBackground(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: const [
+            _HomeContent(),
+            _ExploreContent(),
+            _CartContent(),
+            _ProfileContent(),
+          ],
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
