@@ -12,7 +12,7 @@ import '../screens/cart/cart_screen.dart';
 import '../screens/checkout/checkout_screen.dart';
 import '../screens/my_appointments/my_appointments_screen.dart';
 import '../config/app_theme.dart';
-import '../providers/auth_provider.dart';
+import '../providers/supabase_auth_provider.dart';
 
 /// Configuración de rutas de la aplicación usando go_router
 /// Todas las rutas están centralizadas en este archivo
@@ -41,7 +41,7 @@ class AppRoutes {
 }
 
 /// Crea el router enlazado al estado de autenticación de la sesión.
-GoRouter createGoRouter(AuthProvider authProvider) => GoRouter(
+GoRouter createGoRouter(SupabaseAuthProvider authProvider) => GoRouter(
   initialLocation: AppRoutes.home,
   debugLogDiagnostics: true,
   refreshListenable: authProvider,

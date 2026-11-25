@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import '../../backend/config/supabase_config.dart';
+import 'package:provider/provider.dart';
+import '../../providers/supabase_auth_provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -61,13 +62,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     setState(() => _isLoading = true);
 
     try {
-      await SupabaseConfig.auth.resetPasswordForEmail(
-        _emailController.text.trim(),
-      );
-      setState(() {
-        _isLoading = false;
-        _emailSent = true;
-      });
+      final authProvider = Provider.of<SupabaseAuthProvider>(context, listen: false);
+      final success = await authProvider.resetPassword(_emailController.text.trim());
+
+      if (success) {
+        setState(() {
+          _isLoading = false;
+          _emailSent = true;
+        });
+      } else {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Error al enviar correo'),
+              backgroundColor: Colors.red.shade400,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {

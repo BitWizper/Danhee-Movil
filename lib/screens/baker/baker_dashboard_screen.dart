@@ -6,7 +6,7 @@ import '../../config/routes.dart';
 import '../../models/appointment.dart';
 import '../../providers/auth_provider.dart';
 import '../../repositories/appointment_repository.dart';
-import '../../utils/permission_service.dart';
+// import '../../utils/permission_service.dart'; // Temporarily disabled
 
 /// Dashboard básico del repostero con sus solicitudes de cita.
 class BakerDashboardScreen extends StatelessWidget {
@@ -109,6 +109,8 @@ class BakerDashboardScreen extends StatelessWidget {
     BuildContext context, {
     required bool camera,
   }) async {
+    // Temporarily disabled - permission service removed
+    /*
     final service = PermissionService();
     final result = camera
         ? await service.requestCameraAccess()
@@ -158,5 +160,6 @@ class BakerDashboardScreen extends StatelessWidget {
         ),
       ),
     );
+    */
   }
 }

@@ -16,20 +16,18 @@ class SupabaseConfig {
 
   /// Obtener URL de Supabase
   static String get supabaseUrl {
-    return _supabaseUrl ??
-        String.fromEnvironment(
-          'SUPABASE_URL',
-          defaultValue: 'https://wflvyeslkadtlpemxfrk.supabase.co',
-        );
+    if (_supabaseUrl == null || _supabaseUrl!.isEmpty) {
+      throw Exception('SUPABASE_URL no está configurada. Crea un archivo .env con tu SUPABASE_URL');
+    }
+    return _supabaseUrl!;
   }
 
   /// Obtener Anon Key de Supabase
   static String get supabaseAnonKey {
-    return _supabaseAnonKey ??
-        String.fromEnvironment(
-          'SUPABASE_ANON_KEY',
-          defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndmbHZ5ZXNsa2FkdGxwZW14ZnJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU1NjI5NjUsImV4cCI6MjExMTEzODk2NX0.v5RWTNT7_Vh8xyZaxm8sMF-w0dB5qIg9PurxMqlzFcs',
-        );
+    if (_supabaseAnonKey == null || _supabaseAnonKey!.isEmpty) {
+      throw Exception('SUPABASE_ANON_KEY no está configurada. Crea un archivo .env con tu SUPABASE_ANON_KEY');
+    }
+    return _supabaseAnonKey!;
   }
 
   /// Inicializar Supabase

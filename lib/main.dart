@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'config/app_theme.dart';
 import 'config/routes.dart';
-import 'providers/auth_provider.dart';
 import 'providers/supabase_auth_provider.dart';
 import 'providers/cart_provider.dart';
 import 'backend/config/supabase_config.dart';
@@ -14,29 +13,20 @@ void main() async {
   // Inicializar Supabase
   await SupabaseConfig.initialize();
 
-  // Inicializar autenticación existente
-  final cartProvider = CartProvider();
-  final authProvider = AuthProvider(
-    onSessionCleanup: () async {
-      await cartProvider.clearSession();
-      PaintingBinding.instance.imageCache.clear();
-      PaintingBinding.instance.imageCache.clearLiveImages();
-    },
-  );
-  await authProvider.initAuth();
-
   // Inicializar Supabase Auth Provider
   final supabaseAuthProvider = SupabaseAuthProvider();
   await supabaseAuthProvider.initAuth();
 
-  final router = createGoRouter(authProvider);
+  // Inicializar Cart Provider
+  final cartProvider = CartProvider();
+
+  final router = createGoRouter(supabaseAuthProvider);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider.value(value: supabaseAuthProvider),
-        ChangeNotifierProxyProvider<AuthProvider, CartProvider>(
+        ChangeNotifierProxyProvider<SupabaseAuthProvider, CartProvider>(
           create: (_) => cartProvider,
           update: (_, auth, cart) {
             final currentCart = cart ??
