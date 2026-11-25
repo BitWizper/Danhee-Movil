@@ -3,10 +3,16 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+<<<<<<< HEAD
   firebase_auth
   firebase_core
   flutter_secure_storage_windows
   permission_handler_windows
+=======
+  app_links
+  flutter_secure_storage_windows
+  url_launcher_windows
+>>>>>>> 423c455 (feat: Integrate Supabase authentication and redesign login screens)
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
