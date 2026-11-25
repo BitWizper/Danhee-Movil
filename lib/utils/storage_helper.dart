@@ -57,6 +57,12 @@ class StorageHelper {
       _storage.delete(key: _userEmailKey),
     ]);
   }
+
+  static Future<void> clearSession() async {
+    await clearTokens();
+    final prefs = await getPrefs();
+    await prefs.clear();
+  }
   
   /// Guardar datos del usuario
   static Future<void> saveUserData({

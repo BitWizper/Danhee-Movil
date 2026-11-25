@@ -68,7 +68,7 @@ class _GlowPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 80)
-      ..color = AppColors.gold.withOpacity(0.15);
+      ..color = AppColors.gold.withValues(alpha: 0.15);
     
     // Crear múltiples destellos que se mueven
     final glow1 = Offset(

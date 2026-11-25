@@ -1,35 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../models/cake.dart';
 import '../../widgets/cards/cake_card.dart';
+import '../../repositories/cake_repository.dart';
 
 /// Pantalla de exploración de pasteles
 class ExploreScreen extends StatefulWidget {
   final String? category;
-  
+
   const ExploreScreen({this.category, super.key});
-  
+
   @override
   State<ExploreScreen> createState() => _ExploreScreenState();
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
   final _searchController = TextEditingController();
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        title: Text(widget.category != null 
-          ? _getCategoryName(widget.category!) 
-          : 'Explorar Pasteles'),
+        title: Text(
+          widget.category != null
+              ? _getCategoryName(widget.category!)
+              : 'Explorar Pasteles',
+        ),
       ),
       body: Column(
         children: [
@@ -56,16 +60,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
               },
             ),
           ),
-          
+
           // Lista de pasteles
           Expanded(
-            child: _CakesList(category: widget.category),
+            child: _CakesList(
+              category: widget.category,
+              query: _searchController.text,
+            ),
           ),
         ],
       ),
     );
   }
-  
+
   String _getCategoryName(String category) {
     switch (category) {
       case 'wedding':
@@ -90,76 +97,47 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
 class _CakesList extends StatelessWidget {
   final String? category;
-  
-  const _CakesList({this.category});
-  
+  final String query;
+
+  const _CakesList({this.category, required this.query});
+
   @override
   Widget build(BuildContext context) {
-    // Placeholder - en producción esto vendría de la API
-    final cakes = <Cake>[
-      Cake(
-        id: '1',
-        name: 'Pastel de Boda Clásico',
-        description: 'Elegante pastel de vainilla con decoración minimalista',
-        price: 2200.00,
-        imageUrl: null,
-        categoryId: category ?? '1',
-        bakerId: '1',
-        isFeatured: true,
-      ),
-      Cake(
-        id: '2',
-        name: 'Pastel de Chocolate Intenso',
-        description: 'Tres leches con cobertura de chocolate belga',
-        price: 950.00,
-        imageUrl: null,
-        categoryId: category ?? '2',
-        bakerId: '2',
-        isFeatured: false,
-      ),
-      Cake(
-        id: '3',
-        name: 'Pastel de Fresa',
-        description: 'Bizcocho de fresa con crema fresca',
-        price: 800.00,
-        imageUrl: null,
-        categoryId: category ?? '3',
-        bakerId: '1',
-        isFeatured: false,
-      ),
-    ];
-    
-    if (cakes.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.cake_outlined,
-              size: 64,
-              color: AppColors.goldDim,
+    return FutureBuilder<List<Cake>>(
+      future: MockRepositories.cakes.getCakes(category: category, query: query),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'No se pudieron cargar los pasteles: ${snapshot.error}',
             ),
-            const SizedBox(height: 16),
-            Text(
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.gold),
+          );
+        }
+        final cakes = snapshot.data!;
+        if (cakes.isEmpty) {
+          return Center(
+            child: Text(
               'No hay pasteles disponibles',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppColors.muted,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColors.muted),
             ),
-          ],
-        ),
-      );
-    }
-    
-    return ListView.builder(
-      padding: const EdgeInsets.only(bottom: 16),
-      itemCount: cakes.length,
-      itemBuilder: (context, index) {
-        return CakeCard(
-          cake: cakes[index],
-          onTap: () {
-            // TODO: Navegar a detalle del pastel
-          },
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.only(bottom: 16),
+          itemCount: cakes.length,
+          itemBuilder: (context, index) => CakeCard(
+            cake: cakes[index],
+            onTap: () => GoRouter.of(
+              context,
+            ).pushNamed('cake-detail', pathParameters: {'id': cakes[index].id}),
+          ),
         );
       },
     );

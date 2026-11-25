@@ -12,6 +12,7 @@ import '../screens/cart/cart_screen.dart';
 import '../screens/checkout/checkout_screen.dart';
 import '../screens/my_appointments/my_appointments_screen.dart';
 import '../config/app_theme.dart';
+import '../providers/auth_provider.dart';
 
 /// Configuración de rutas de la aplicación usando go_router
 /// Todas las rutas están centralizadas en este archivo
@@ -39,10 +40,50 @@ class AppRoutes {
   static const String babyshower = '/babyshower';
 }
 
-/// Router principal de la aplicación
-final goRouter = GoRouter(
+/// Crea el router enlazado al estado de autenticación de la sesión.
+GoRouter createGoRouter(AuthProvider authProvider) => GoRouter(
   initialLocation: AppRoutes.home,
   debugLogDiagnostics: true,
+  refreshListenable: authProvider,
+  redirect: (context, state) {
+    final isAuthenticated = authProvider.isAuthenticated;
+    final location = state.matchedLocation;
+    final isLoginOrRegister =
+        location == AppRoutes.login || location == AppRoutes.register;
+    final isBakerRoute = location == AppRoutes.bakerDashboard;
+    final isClientRoute = location == AppRoutes.appointment ||
+        location.startsWith('${AppRoutes.appointment}/') ||
+        location == AppRoutes.cart ||
+        location == AppRoutes.checkout ||
+        location == AppRoutes.myAppointments;
+
+    if (!isAuthenticated && (isBakerRoute || isClientRoute)) {
+      return Uri(
+        path: AppRoutes.login,
+        queryParameters: {'from': state.uri.toString()},
+      ).toString();
+    }
+
+    if (isAuthenticated && isLoginOrRegister) {
+      final requestedLocation = state.uri.queryParameters['from'];
+      if (requestedLocation != null &&
+          requestedLocation.startsWith('/') &&
+          !requestedLocation.startsWith('//') &&
+          requestedLocation != AppRoutes.login &&
+          requestedLocation != AppRoutes.register) {
+        return requestedLocation;
+      }
+      return authProvider.isBaker ? AppRoutes.bakerDashboard : AppRoutes.home;
+    }
+
+    if (isAuthenticated && isBakerRoute && !authProvider.isBaker) {
+      return AppRoutes.home;
+    }
+    if (isAuthenticated && isClientRoute && !authProvider.isClient) {
+      return authProvider.isBaker ? AppRoutes.bakerDashboard : AppRoutes.home;
+    }
+    return null;
+  },
   routes: [
     // Rutas públicas
     GoRoute(
@@ -185,4 +226,4 @@ final goRouter = GoRouter(
       ),
     ),
   ),
-);
+  );

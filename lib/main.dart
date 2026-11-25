@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'config/app_theme.dart';
 import 'config/routes.dart';
@@ -9,22 +10,40 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicializar autenticación
-  final authProvider = AuthProvider();
+  final cartProvider = CartProvider();
+  final authProvider = AuthProvider(
+    onSessionCleanup: () async {
+      await cartProvider.clearSession();
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
+    },
+  );
   await authProvider.initAuth();
+  final router = createGoRouter(authProvider);
   
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authProvider),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, CartProvider>(
+          create: (_) => cartProvider,
+          update: (_, auth, cart) {
+            final currentCart = cart ??
+                CartProvider(userId: auth.user?.id ?? 'demo-client');
+            currentCart.setUserId(auth.user?.id ?? 'demo-client');
+            return currentCart;
+          },
+        ),
       ],
-      child: const DanheeApp(),
+      child: DanheeApp(router: router),
     ),
   );
 }
 
 class DanheeApp extends StatelessWidget {
-  const DanheeApp({super.key});
+  final GoRouter router;
+
+  const DanheeApp({required this.router, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +51,7 @@ class DanheeApp extends StatelessWidget {
       title: 'Danhee Cake',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      routerConfig: goRouter,
+      routerConfig: router,
     );
   }
 }

@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/cart_provider.dart';
 import '../../widgets/cards/cake_card.dart';
 import '../../widgets/common/animated_background.dart';
 import '../../models/cake.dart';
+import '../../repositories/cake_repository.dart';
 
 /// Pantalla principal (Home)
 class HomeScreen extends StatefulWidget {
@@ -228,37 +230,44 @@ class _FeaturedCakesList extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // Placeholder - en producción esto vendría de la API
-    final featuredCakes = <Cake>[
-      Cake(
-        id: '1',
-        name: 'Pastel de Boda Elegante',
-        description: 'Pastel de 3 pisos con decoración en fondant y flores frescas',
-        price: 2500.00,
-        imageUrl: null,
-        categoryId: '1',
-        bakerId: '1',
-        isFeatured: true,
-      ),
-      Cake(
-        id: '2',
-        name: 'Pastel de Cumpleaños Infantil',
-        description: 'Pastel temático con personajes y colores vibrantes',
-        price: 850.00,
-        imageUrl: null,
-        categoryId: '2',
-        bakerId: '2',
-        isFeatured: true,
-      ),
-    ];
-    
-    return Column(
-      children: featuredCakes.map((cake) {
-        return CakeCard(
-          cake: cake,
-          onTap: () => GoRouter.of(context).go('${AppRoutes.cakeDetail}/${cake.id}'),
+    return FutureBuilder<List<Cake>>(
+      future: MockRepositories.cakes.getCakes(featuredOnly: true),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('No se pudieron cargar los pasteles destacados.');
+        }
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.gold),
+          );
+        }
+        return Column(
+          children: snapshot.data!.map((cake) {
+            return CakeCard(
+              cake: cake,
+              onTap: () => GoRouter.of(context).pushNamed(
+                'cake-detail',
+                pathParameters: {'id': cake.id},
+              ),
+              onAddToCart: () async {
+                final auth = context.read<AuthProvider>();
+                if (!auth.isAuthenticated || !auth.isClient) {
+                  GoRouter.of(context).go(AppRoutes.login);
+                  return;
+                }
+                final added = await context.read<CartProvider>().addToCart(cake);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(added
+                        ? '${cake.name} agregado al carrito'
+                        : 'No se pudo agregar el pastel'),
+                  ));
+                }
+              },
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 }
@@ -268,8 +277,11 @@ class _ExploreContent extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Explorar - En desarrollo'),
+    return Center(
+      child: ElevatedButton(
+        onPressed: () => GoRouter.of(context).go(AppRoutes.explore),
+        child: const Text('Explorar pasteles'),
+      ),
     );
   }
 }
@@ -279,8 +291,11 @@ class _CartContent extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Carrito - En desarrollo'),
+    return Center(
+      child: ElevatedButton(
+        onPressed: () => GoRouter.of(context).go(AppRoutes.cart),
+        child: const Text('Abrir carrito'),
+      ),
     );
   }
 }
@@ -334,7 +349,7 @@ class _ProfileContent extends StatelessWidget {
               ),
               _MenuOption(
                 icon: Icons.shopping_bag,
-                title: 'Mis Pedidos',
+                title: 'Mis Citas',
                 onTap: () => GoRouter.of(context).go(AppRoutes.myAppointments),
               ),
               if (authProvider.isBaker)
@@ -355,6 +370,16 @@ class _ProfileContent extends StatelessWidget {
                   await authProvider.logout();
                   if (context.mounted) {
                     GoRouter.of(context).go(AppRoutes.login);
+                    if (authProvider.errorMessage != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'La sesión local se cerró, pero falló el cierre remoto: '
+                            '${authProvider.errorMessage}',
+                          ),
+                        ),
+                      );
+                    }
                   }
                 },
               ),

@@ -1,13 +1,20 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/api_config.dart';
 import '../utils/storage_helper.dart';
+
+typedef AccessTokenProvider = Future<String?> Function({
+  bool forceRefresh,
+});
 
 /// Servicio centralizado de API
 /// Maneja todas las peticiones HTTP al backend
 class ApiService {
   late final Dio _dio;
-  final _storage = const FlutterSecureStorage();
+  AccessTokenProvider? _accessTokenProvider;
+
+  void setAccessTokenProvider(AccessTokenProvider? provider) {
+    _accessTokenProvider = provider;
+  }
   
   // Singleton pattern
   static final ApiService _instance = ApiService._internal();
@@ -26,7 +33,9 @@ class ApiService {
     // Interceptor para agregar token JWT
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await StorageHelper.getAccessToken();
+        final token = _accessTokenProvider != null
+            ? await _accessTokenProvider!(forceRefresh: false)
+            : await StorageHelper.getAccessToken();
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
@@ -34,13 +43,23 @@ class ApiService {
       },
       onError: (error, handler) async {
         // Si es 401, intentar refresh token
-        if (error.response?.statusCode == 401) {
+        final isRefreshRequest =
+            error.requestOptions.path.endsWith(ApiConfig.refreshToken);
+        final alreadyRetried =
+            error.requestOptions.extra['retriedAfterRefresh'] == true;
+        if (error.response?.statusCode == 401 &&
+            !isRefreshRequest &&
+            !alreadyRetried) {
           try {
-            await _refreshToken();
-            final token = await StorageHelper.getAccessToken();
+            final accessTokenProvider = _accessTokenProvider;
+            if (accessTokenProvider == null) await _refreshToken();
+            final token = accessTokenProvider != null
+                ? await accessTokenProvider(forceRefresh: true)
+                : await StorageHelper.getAccessToken();
             if (token != null) {
               final opts = error.requestOptions;
               opts.headers['Authorization'] = 'Bearer $token';
+              opts.extra['retriedAfterRefresh'] = true;
               final response = await _dio.fetch(opts);
               handler.resolve(response);
               return;
@@ -58,7 +77,7 @@ class ApiService {
   /// Refrescar el token de acceso
   Future<void> _refreshToken() async {
     final refreshToken = await StorageHelper.getRefreshToken();
-    if (refreshToken == null) return;
+    if (refreshToken == null || refreshToken.isEmpty) return;
     
     try {
       final response = await _dio.post(
@@ -145,7 +164,10 @@ class ApiService {
         break;
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        final errorMessage = error.response?.data['message'] ?? 'Error desconocido';
+        final responseData = error.response?.data;
+        final errorMessage = responseData is Map
+            ? responseData['message']?.toString() ?? 'Error desconocido'
+            : 'Error desconocido';
         
         switch (statusCode) {
           case 400:

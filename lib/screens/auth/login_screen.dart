@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/security_validators.dart';
 import '../../widgets/buttons/primary_button.dart';
 import '../../widgets/common/loading_indicator.dart';
 
@@ -36,9 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
       
-      if (success && mounted) {
-        GoRouter.of(context).go(AppRoutes.home);
-      } else if (mounted) {
+      if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Error al iniciar sesión'),
@@ -107,15 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         hintText: 'tu@email.com',
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingresa tu correo electrónico';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Ingresa un correo válido';
-                        }
-                        return null;
-                      },
+                      validator: SecurityValidators.validateEmail,
                     ),
                     
                     const SizedBox(height: 16),
@@ -139,15 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Ingresa tu contraseña';
-                        }
-                        if (value.length < 6) {
-                          return 'La contraseña debe tener al menos 6 caracteres';
-                        }
-                        return null;
-                      },
+                      validator: SecurityValidators.validateLoginPassword,
                     ),
                     
                     const SizedBox(height: 24),

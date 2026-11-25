@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../config/app_theme.dart';
 import '../../config/routes.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/security_validators.dart';
 import '../../widgets/buttons/primary_button.dart';
 import '../../widgets/common/loading_indicator.dart';
 
@@ -21,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
   
   // Campos para repostero
@@ -41,6 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _phoneController.dispose();
     _businessNameController.dispose();
     _specialtyController.dispose();
@@ -59,9 +62,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         phone: _phoneController.text.trim(),
       );
       
-      if (success && mounted) {
-        GoRouter.of(context).go(AppRoutes.home);
-      } else if (mounted) {
+      if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Error al registrarse'),
@@ -86,9 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         businessHours: _businessHoursController.text.trim(),
       );
       
-      if (success && mounted) {
-        GoRouter.of(context).go(AppRoutes.home);
-      } else if (mounted) {
+      if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Error al registrarse'),
@@ -194,15 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 hintText: 'tu@email.com',
                 prefixIcon: Icon(Icons.email_outlined),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa tu correo electrónico';
-                }
-                if (!value.contains('@')) {
-                  return 'Ingresa un correo válido';
-                }
-                return null;
-              },
+              validator: SecurityValidators.validateEmail,
             ),
             const SizedBox(height: 16),
             
@@ -231,15 +222,21 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 hintText: '••••••••',
                 prefixIcon: Icon(Icons.lock_outlined),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa tu contraseña';
-                }
-                if (value.length < 6) {
-                  return 'La contraseña debe tener al menos 6 caracteres';
-                }
-                return null;
-              },
+              validator: SecurityValidators.validateNewPassword,
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Confirmar contraseña',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+              validator: (value) =>
+                  SecurityValidators.validatePasswordConfirmation(
+                value,
+                _passwordController.text,
+              ),
             ),
             const SizedBox(height: 24),
             
@@ -291,15 +288,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 hintText: 'tu@email.com',
                 prefixIcon: Icon(Icons.email_outlined),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa tu correo electrónico';
-                }
-                if (!value.contains('@')) {
-                  return 'Ingresa un correo válido';
-                }
-                return null;
-              },
+              validator: SecurityValidators.validateEmail,
             ),
             const SizedBox(height: 16),
             
@@ -392,15 +381,21 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 hintText: '••••••••',
                 prefixIcon: Icon(Icons.lock_outlined),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Ingresa tu contraseña';
-                }
-                if (value.length < 6) {
-                  return 'La contraseña debe tener al menos 6 caracteres';
-                }
-                return null;
-              },
+              validator: SecurityValidators.validateNewPassword,
+            ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _confirmPasswordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Confirmar contraseña',
+                prefixIcon: Icon(Icons.lock_outline),
+              ),
+              validator: (value) =>
+                  SecurityValidators.validatePasswordConfirmation(
+                value,
+                _passwordController.text,
+              ),
             ),
             const SizedBox(height: 24),
             

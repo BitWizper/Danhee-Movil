@@ -57,9 +57,14 @@ dependencies:
   # Utilities
   intl: ^0.19.0
   json_annotation: ^4.8.1
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to

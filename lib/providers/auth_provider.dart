@@ -1,13 +1,18 @@
 import 'package:flutter/foundation.dart';
-import '../api/api_service.dart';
-import '../config/api_config.dart';
-import '../models/auth_response.dart';
 import '../models/user.dart';
+import '../repositories/auth_repository.dart';
 import '../utils/storage_helper.dart';
 
 /// Provider para manejo de autenticación
 class AuthProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  AuthProvider({
+    AuthRepository? repository,
+    Future<void> Function()? onSessionCleanup,
+  }) : _repository = repository ?? MockAuthRepositories.instance,
+       _onSessionCleanup = onSessionCleanup;
+
+  final AuthRepository _repository;
+  final Future<void> Function()? _onSessionCleanup;
   
   User? _user;
   bool _isLoading = false;
@@ -28,10 +33,11 @@ class AuthProvider with ChangeNotifier {
     try {
       final isAuth = await StorageHelper.isAuthenticated();
       if (isAuth) {
-        await _fetchCurrentUser();
+        _user = await _repository.getCurrentUser();
       }
     } catch (e) {
       _errorMessage = e.toString();
+      await StorageHelper.clearTokens();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -45,12 +51,7 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.post(
-        ApiConfig.login,
-        data: {'email': email, 'password': password},
-      );
-      
-      final authResponse = AuthResponse.fromJson(response.data);
+      final authResponse = await _repository.login(email, password);
       _user = authResponse.user;
       
       // Guardar tokens y datos
@@ -87,18 +88,12 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.post(
-        ApiConfig.register,
-        data: {
-          'name': name,
-          'email': email,
-          'password': password,
-          'phone': phone,
-          'role': 'cliente',
-        },
+      final authResponse = await _repository.registerClient(
+        name: name,
+        email: email,
+        password: password,
+        phone: phone,
       );
-      
-      final authResponse = AuthResponse.fromJson(response.data);
       _user = authResponse.user;
       
       // Guardar tokens y datos
@@ -139,21 +134,16 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
     
     try {
-      final response = await _apiService.post(
-        ApiConfig.registerBaker,
-        data: {
-          'name': name,
-          'email': email,
-          'password': password,
-          'phone': phone,
-          'businessName': businessName,
-          'specialty': specialty,
-          'location': location,
-          'businessHours': businessHours,
-        },
+      final authResponse = await _repository.registerBaker(
+        name: name,
+        email: email,
+        password: password,
+        phone: phone,
+        businessName: businessName,
+        specialty: specialty,
+        location: location,
+        businessHours: businessHours,
       );
-      
-      final authResponse = AuthResponse.fromJson(response.data);
       _user = authResponse.user;
       
       // Guardar tokens y datos
@@ -180,26 +170,20 @@ class AuthProvider with ChangeNotifier {
   
   /// Logout
   Future<void> logout() async {
+    String? logoutError;
     try {
-      await _apiService.post(ApiConfig.logout);
+      await _repository.logout();
     } catch (e) {
-      // Ignorar error en logout
-    } finally {
-      await StorageHelper.clearTokens();
-      _user = null;
-      _errorMessage = null;
-      notifyListeners();
+      logoutError = e.toString();
     }
-  }
-  
-  /// Obtener usuario actual
-  Future<void> _fetchCurrentUser() async {
+
     try {
-      final response = await _apiService.get(ApiConfig.me);
-      _user = User.fromJson(response.data);
-    } catch (e) {
-      await StorageHelper.clearTokens();
+      await StorageHelper.clearSession();
+      await _onSessionCleanup?.call();
+    } finally {
       _user = null;
+      _errorMessage = logoutError;
+      notifyListeners();
     }
   }
   

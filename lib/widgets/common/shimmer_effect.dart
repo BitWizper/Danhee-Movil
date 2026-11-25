@@ -50,9 +50,9 @@ class _ShimmerEffectState extends State<ShimmerEffect>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.gold.withOpacity(0.0),
-                AppColors.gold.withOpacity(0.3),
-                AppColors.gold.withOpacity(0.0),
+                AppColors.gold.withValues(alpha: 0.0),
+                AppColors.gold.withValues(alpha: 0.3),
+                AppColors.gold.withValues(alpha: 0.0),
               ],
               stops: [
                 _animation.value.clamp(0.0, 1.0) - 0.3,
