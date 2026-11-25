@@ -59,3 +59,60 @@ La única URL configurada por defecto es `http://localhost:4000/api`, destinada 
 desarrollo y centralizada en `lib/config/api_config.dart`. Se puede sustituir al
 compilar con `--dart-define=API_BASE_URL=https://tu-api`; usa HTTPS en producción.
 No guardes secretos ni claves privadas en la app móvil.
+
+## Versionado
+
+`pubspec.yaml` usa el formato `MAJOR.MINOR.PATCH+BUILD`; ahora está en `1.0.0+1`.
+Incrementa MAJOR para cambios incompatibles, MINOR para funcionalidades compatibles
+y PATCH para correcciones compatibles. Aumenta BUILD en cada binario distribuido;
+Android lo utiliza como `versionCode`, que debe ser siempre mayor que el anterior.
+Usa tags Git como `v1.0.0` para identificar las liberaciones.
+
+## Firma y compilación Android
+
+Desde la raíz del repositorio, genera una llave de publicación con `keytool`:
+
+```shell
+keytool -genkeypair -v -keystore android/app/upload-keystore.jks -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+`keytool` solicitará las contraseñas y los datos del certificado. Después crea
+`android/key.properties` localmente con este contenido y reemplaza los valores de
+ejemplo por los datos que hayas elegido:
+
+```properties
+storePassword=REEMPLAZAR
+keyPassword=REEMPLAZAR
+keyAlias=upload
+storeFile=app/upload-keystore.jks
+```
+
+No subas `android/key.properties`, `*.jks` ni `*.keystore` a GitHub. Conserva una
+copia de respaldo segura de la llave y sus contraseñas: son necesarias para firmar
+futuras actualizaciones de la misma app. Los builds debug no necesitan estos archivos;
+los builds release se detienen con un error claro si faltan.
+
+Con `android/key.properties` y la llave en su ruta, ejecuta uno de estos comandos:
+
+```shell
+flutter build appbundle --release
+flutter build apk --release
+```
+
+El App Bundle queda en `build/app/outputs/bundle/release/app-release.aab` y el APK
+en `build/app/outputs/flutter-apk/app-release.apk`. El AAB está destinado a Google
+Play; el APK se puede instalar directamente para pruebas o distribución controlada.
+
+## Distribución y conexión del backend
+
+Para distribuir una versión, sube el código y un tag como `v1.0.0` a
+[BitWizper/Danhee-Movil](https://github.com/BitWizper/Danhee-Movil), crea una GitHub
+Release desde ese tag y adjunta el AAB o APK firmado. Como alternativa para pruebas
+internas, comparte el APK mediante una carpeta compartida con acceso restringido.
+Distribuye únicamente los artefactos compilados; nunca la llave ni `key.properties`.
+
+La conexión real del backend queda desacoplada: su URL se configura mediante
+`API_BASE_URL` en `lib/config/api_config.dart` (por ejemplo,
+`--dart-define=API_BASE_URL=https://tu-api`). Los contratos e implementaciones de
+datos están en `lib/repositories/`; ahí se conectará el backend real mediante
+`ApiService`, sin cambiar ahora la lógica mock ni la base de datos.

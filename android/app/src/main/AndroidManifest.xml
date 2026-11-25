@@ -10,7 +10,7 @@
         android:name="android.hardware.camera"
         android:required="false"/>
     <application
-        android:label="danhee_movil"
+        android:label="Danhee Cake"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
